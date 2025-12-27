@@ -67,6 +67,7 @@ export const login = async (req, res) => {
     console.log("error in login controller:", error.message);
   }
 };
+
 export const logout = (req, res) => {
   try {
     res.cookie("jwt", "", { maxAge: 0 });
@@ -76,3 +77,5 @@ export const logout = (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+export const UpdateProfile = async (req, res) => {};
