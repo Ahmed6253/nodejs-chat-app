@@ -1,6 +1,7 @@
 import User from "../models/user.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../lib/utiles.js";
+import cloud from "../lib/cloudinary.js";
 
 export const signup = async (req, res) => {
   console.log("ahmed");
@@ -78,4 +79,34 @@ export const logout = (req, res) => {
   }
 };
 
-export const UpdateProfile = async (req, res) => {};
+export const UpdateProfile = async (req, res) => {
+  try {
+    const { profilePic } = req.body;
+    const userId = req.user._id;
+
+    if (!profilePic) {
+      return res.status(400).json({ message: "profile image is required" });
+    }
+
+    const uploadRes = await cloud.uploader.upload(profilePic);
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { profilePic: uploadRes.secure_url },
+      { new: true }
+    );
+
+    res.status(200).json({ updatedUser });
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
+    console.log("error while saving user profile image", error);
+  }
+};
+
+export const checkAuth = (req, res) => {
+  try {
+    res.status(200).json(req.user);
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
+    console.log("error while checking user auth", error);
+  }
+};
