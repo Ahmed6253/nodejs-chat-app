@@ -50,15 +50,18 @@ export const signup = async (req, res) => {
 
 export const login = async (req, res) => {
   const { email, password } = req.body;
+
   try {
     if (!email || !password) {
       return res.status(400).json({ message: "All fildes are required" });
     }
     const user = await User.findOne({ email });
-    const isPasswordCorrect = await bcrypt.compare(password, user.password);
-    if (!user || !isPasswordCorrect) {
-      return res.status(400).json({ messages: "invalid credentials" });
-    }
+    if (!user) return res.status(400).json({ messages: "invalid credentials" });
+
+    const isPasswordCorrect = await bcrypt.compare(
+      password,
+      user.password || ""
+    );
 
     generateToken(user._id, res);
     res.status(200).json({
@@ -66,8 +69,10 @@ export const login = async (req, res) => {
       fullName: user.fullName,
       email: user.email,
       profilePic: user.profilePic,
+      createdAt: user.createdAt,
     });
   } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
     console.log("error in login controller:", error.message);
   }
 };
@@ -84,7 +89,7 @@ export const logout = (req, res) => {
 
 export const UpdateProfile = async (req, res) => {
   try {
-    const { profilePic } = req.body;
+    const profilePic = req?.body?.profilePic;
     const userId = req.user._id;
 
     if (!profilePic) {
