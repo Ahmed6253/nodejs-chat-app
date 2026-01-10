@@ -15,15 +15,6 @@ app.use(express.urlencoded({ limit: "5mb", extended: true }));
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(cookieParser());
 
-app.use((err, req, res, next) => {
-  if (err?.type === "entity.too.large") {
-    return res.status(413).json({
-      message: "File is too large. Please upload an image under 2MB.",
-    });
-  }
-  next(err);
-});
-
 app.use("/api/auth", authRoutes);
 app.use("/api/message", messageRoutes);
 
