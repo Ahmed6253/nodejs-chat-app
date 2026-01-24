@@ -1,4 +1,5 @@
 import cloud from "../lib/cloudinary.js";
+import { getReciverSocketId, io } from "../lib/socket.js";
 import Message from "../models/message.js";
 import User from "../models/user.js";
 
@@ -61,14 +62,20 @@ export const sendMessages = async (req, res) => {
 
     const newMessage = new Message({
       senderId: currUserId,
-      receiverId: userToChatId,
+      receiverId: userToChatId._id,
       text,
       image: imageUrl,
     });
 
-    res.status(201).json(newMessage);
-
     await newMessage.save();
+    const receiverSocketId = getReciverSocketId(userToChatId._id);
+
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("newMessage", newMessage);
+      console.log(newMessage, "message");
+    }
+
+    res.status(201).json(newMessage);
   } catch (error) {
     console.log("error in sendMessages", error.message);
     res.status(500).json({ message: "Internal server error" });
